@@ -1,0 +1,9 @@
+*.pyc
+
+information.py
+information.pyc
+support_information.py
+support_information.pyc
+
+*~
+.Rhistory
