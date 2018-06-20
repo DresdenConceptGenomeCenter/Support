@@ -29,12 +29,15 @@ contact: mathias.lesche(at)tu-dresden.de
 '''
 
 ''' python modules '''
+from pathlib import Path
+
 from os.path import abspath
 from os.path import isfile
 from os.path import sep
 
-
 from os import environ
+
+
 
 
 '''
@@ -75,4 +78,9 @@ def check_file(filename):
     if isfile(filename): return get_absolute_path(filename)
     return ''
 
-
+'''
+  Method creates a directory. Returns True if succeeded or directory exists, otherwise False.
+  @param dirname: string
+'''
+def create_directory(dirname):
+    Path(get_absolute_path(dirname)).mkdir(mode = 0o770, parents = True, exist_ok = True)
