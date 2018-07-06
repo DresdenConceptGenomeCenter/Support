@@ -31,14 +31,16 @@ contact: mathias.lesche(at)tu-dresden.de
 ''' python modules '''
 from pathlib import Path
 
+from os import listdir
+
 from os.path import abspath
 from os.path import isfile
+from os.path import isdir
 from os.path import sep
+from os.path import join as path_join
+from os.path import exists
 
 from os import environ
-
-
-
 
 '''
   Method appends the separator of the os at the end of the string
@@ -79,8 +81,43 @@ def check_file(filename):
     return ''
 
 '''
+  Method checks if the directory exists
+  @param dirname: string
+  @return: string
+'''
+def check_directory(dirname):
+    if isdir(dirname): return get_absolute_path(dirname)
+    return ''
+
+'''
   Method creates a directory. Returns True if succeeded or directory exists, otherwise False.
   @param dirname: string
+  @return: boolean
 '''
 def create_directory(dirname):
     Path(get_absolute_path(dirname)).mkdir(mode = 0o770, parents = True, exist_ok = True)
+    
+
+'''
+  Given a path, method lists all subdirectories.
+  @param : string
+  @return: list of string
+'''
+def list_subdirectories(dirname):
+    dirname = get_absolute_path(dirname)
+    subdirectories = []
+    entries = listdir(dirname)
+    for e in entries:
+        sd = check_directory(path_join(dirname,e))
+        if sd:
+            subdirectories.append(sd)
+    return subdirectories
+            
+'''
+  Checks if a directory is archived (or to be archived).
+  @param dirname: string
+  @return: boolean
+'''
+def is_archived_directory(dirname):
+    dirname = get_absolute_path(dirname)
+    return '_archived' in dirname or exists(path_join(dirname,"toarchive.txt")) or exists(path_join(dirname,"topbarchive.txt")) or exists(path_join(dirname,"ARCHIVED.txt"))
