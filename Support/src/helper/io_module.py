@@ -34,14 +34,15 @@ from gzip import open as gzipopen
 
 from pathlib import Path
 
+from os import environ
+from os import listdir
+
 from os.path import abspath
 from os.path import isfile
 from os.path import isdir
 from os.path import sep
 from os.path import join as pathjoin
-
-from os import environ
-from os import listdir
+from os.path import exists
 
 '''
     Method produces the reverse complement of a nucleotide sequence
@@ -53,7 +54,6 @@ def get_reverse_complement(inputstring):
     outtab = 'TGCANtgcan'
     transtab = str.maketrans(intab, outtab)
     return inputstring[::-1].translate(transtab)
-
 
 '''
   Method appends the separator of the os at the end of the string
@@ -94,7 +94,7 @@ def check_file(filename):
     return ''
 
 '''
-  Method checks if the file exists
+  Method checks if the directory exists
   @param filename: string
   @return: string
 '''
@@ -103,12 +103,13 @@ def check_directory(dirpath):
     return ''
 
 '''
-  Method creates a directory. Returns True if succeeded or directory exists, otherwise False.
+  Method creates a directory.
   @param dirname: string
+  @return: boolean
 '''
 def create_directory(dirname):
     Path(get_absolute_path(dirname)).mkdir(mode = 0o770, parents = True, exist_ok = True)
-    
+
 '''
   Give a list of possible files, method checks if files exist
   @param filelist: possible list of files
@@ -149,22 +150,22 @@ def add_files_to_list(directory, ext):
 
 '''
   Method goes recursively through a directory and add files 
-  in a directory to a list, if they a certain suffixes.
+  in a directory to a list, if they have certain suffixes.
   @param directory: string
   @param returnfiles: list
   @param ext: tuple
   @return: list of files
 '''
-def add_FilestoList_recursive(directory, returnfiles, ext):
+def add_files_to_list_recursive(directory, returnfiles, ext):
     returnfiles.extend(add_files_to_list(directory, ext))
     tempdirectories = ['{0}{1}'.format(directory, i) for i in listdir(add_separator(directory)) if isdir('{0}{1}'.format(directory, i))]
     for dirname in tempdirectories:
-        returnfiles = add_FilestoList_recursive(add_separator(dirname), returnfiles, ext)
+        returnfiles = add_files_to_list_recursive(add_separator(dirname), returnfiles, ext)
     return returnfiles
 
 '''
-  Method goes recursively through a directory and add files 
-  in a directory to a list, if they a certain suffixes.
+  Method goes recursively through a directory up to a certain depth and add files 
+  in a directory to a list, if they have certain suffixes.
   @param directory: string
   @param returnfiles: list
   @param ext: tuple
@@ -242,4 +243,27 @@ def read_file_get_list_with_sep(filename, sep, attr='r'):
         for line in filein:
             temp.append(line.rstrip('\n').split(sep))
     return temp
+
+'''
+  Given a path, method lists all subdirectories.
+  @param : string
+  @return: list of string
+'''
+def list_subdirectories(dirname):
+    dirname = get_absolute_path(dirname)
+    subdirectories = []
+    entries = listdir(dirname)
+    for e in entries:
+        subdirname = check_directory(pathjoin(dirname,e))
+        if subdirname != '' : subdirectories.append(subdirname)
+    return subdirectories
+            
+'''
+  Checks if a directory is archived (or to be archived).
+  @param dirname: string
+  @return: boolean
+'''
+def is_archived_directory(dirname):
+    dirname = get_absolute_path(dirname)
+    return '_archived' in dirname or exists(pathjoin(dirname,"toarchive.txt")) or exists(pathjoin(dirname,"topbarchive.txt")) or exists(pathjoin(dirname,"ARCHIVED.txt"))
 
