@@ -29,15 +29,30 @@ contact: mathias.lesche(at)tu-dresden.de
 '''
 
 ''' python modules '''
+
+from gzip import open as gzipopen
+
 from pathlib import Path
 
 from os.path import abspath
 from os.path import isfile
+from os.path import isdir
 from os.path import sep
+from os.path import join as pathjoin
 
 from os import environ
+from os import listdir
 
-
+'''
+    Method produces the reverse complement of a nucleotide sequence
+    @param inputstring: string
+    @return: string 
+'''
+def get_reverse_complement(inputstring):
+    intab = 'ACGTNacgtn'
+    outtab = 'TGCANtgcan'
+    transtab = str.maketrans(intab, outtab)
+    return inputstring[::-1].translate(transtab)
 
 
 '''
@@ -79,8 +94,152 @@ def check_file(filename):
     return ''
 
 '''
+  Method checks if the file exists
+  @param filename: string
+  @return: string
+'''
+def check_directory(dirpath):
+    if isdir(dirpath): return get_absolute_path(dirpath)
+    return ''
+
+'''
   Method creates a directory. Returns True if succeeded or directory exists, otherwise False.
   @param dirname: string
 '''
 def create_directory(dirname):
     Path(get_absolute_path(dirname)).mkdir(mode = 0o770, parents = True, exist_ok = True)
+    
+'''
+  Give a list of possible files, method checks if files exist
+  @param filelist: possible list of files
+  @return list (correct), list (incorrect) 
+'''
+def check_fileslist(filelist):
+    correct, incorrect = [], []
+    for name in filelist:
+        name = get_absolute_path(name)
+        if check_file(name) == '':
+            incorrect.append(name)
+        else:
+            correct.append(name)
+    return correct, incorrect
+
+'''
+  method adds files in a directory to a list, if they have certain suffixes
+  @param directory: string
+  @param ext: tuple of strings
+  @return: list of filepaths
+'''
+def add_files_to_list(directory, ext):
+    temp = listdir(directory)
+    returnfiles = []
+    if len(ext) == 0:
+        for name in temp:
+            filename = pathjoin(directory, name)
+            if check_file(filename) != '': returnfiles.append(filename)
+        return returnfiles
+    for name in temp:
+        for suffix in ext:
+            if name.endswith(suffix):
+                filename = pathjoin(directory, name)
+            if check_file(filename) != '':
+                returnfiles.append(filename)
+                break
+    return returnfiles
+
+'''
+  Method goes recursively through a directory and add files 
+  in a directory to a list, if they a certain suffixes.
+  @param directory: string
+  @param returnfiles: list
+  @param ext: tuple
+  @return: list of files
+'''
+def add_FilestoList_recursive(directory, returnfiles, ext):
+    returnfiles.extend(add_files_to_list(directory, ext))
+    tempdirectories = ['{0}{1}'.format(directory, i) for i in listdir(add_separator(directory)) if isdir('{0}{1}'.format(directory, i))]
+    for dirname in tempdirectories:
+        returnfiles = add_FilestoList_recursive(add_separator(dirname), returnfiles, ext)
+    return returnfiles
+
+'''
+  Method goes recursively through a directory and add files 
+  in a directory to a list, if they a certain suffixes.
+  @param directory: string
+  @param returnfiles: list
+  @param ext: tuple
+  @param count: int  
+  @param depth: int
+  @return: list of files
+'''
+def add_files_to_list_recursive_depth(directory, returnfiles, ext, count, depth = 2):
+    returnfiles.extend(add_files_to_list(directory, ext))
+    if count == depth: return returnfiles
+    tempdirectories = ['{0}{1}'.format(directory, i) for i in listdir(add_separator(directory)) if isdir('{0}{1}'.format(directory, i))]
+    for dirname in tempdirectories:
+        returnfiles = add_files_to_list_recursive_depth(add_separator(dirname), returnfiles, ext, count + 1, depth)
+    return returnfiles
+
+'''
+  Method add directories in a directory to a list
+  @param directory: string
+'''
+def add_directories_to_list(directory):
+    temp = listdir(directory)
+    returndirs = []
+    for name in temp:
+        name = pathjoin(directory, name)
+        if check_directory(name) != '': returndirs.append(name)
+    return returndirs
+
+'''
+  Method goes recursively through a directory and add directories
+  to a list. Once depth is reached it stops.
+  @param directory: string
+  @param returndirs: list
+  @param count: int  
+  @param depth: int
+'''
+def add_directories_to_list_recursive(directory, returndirs, count, depth = 2):
+    returndirs.extend(add_directories_to_list(directory))
+    if depth == count: return returndirs
+    tempdirectories = [pathjoin(directory, i) for i in listdir(add_separator(directory)) if isdir(pathjoin(directory, i))]
+    for dirname in tempdirectories:
+        returndirs = add_directories_to_list_recursive(add_separator(dirname), returndirs, count + 1, depth)
+    return returndirs
+
+
+'''
+STANDARD READ WRITE FUNCTIONS
+'''
+def get_fileobject(filename, attr):
+    if filename.endswith('gz'):
+        return gzipopen(filename, '{0}b'.format(attr))
+    return open(filename, attr)
+ 
+def write_list(writelist, filename, attr = 'w'):
+    with get_fileobject(filename, attr) as fileout:
+        fileout.writelines(writelist)
+ 
+def write_string(writestring, filename, attr):
+    with get_fileobject(filename, attr) as fileout:
+        fileout.write(writestring)
+ 
+def read_file_get_string(filename, attr='r'):
+    with get_fileobject(filename, attr) as filein:
+        temp = filein.readlines()
+    return ''.join(temp)
+ 
+def read_file_get_list(filename, attr='r'):
+    with get_fileobject(filename, attr) as filein:
+        temp = filein.readlines()
+    temp = [i.rstrip('\n') for i in temp]
+    return temp
+
+def read_file_get_list_with_sep(filename, sep, attr='r'):
+    temp = []
+    with get_fileobject(filename, attr) as filein:
+        for line in filein:
+            temp.append(line.rstrip('\n').split(sep))
+    return temp
+

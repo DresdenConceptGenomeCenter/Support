@@ -58,6 +58,10 @@ class Machine(object):
             self.__logger.error(message)
         elif level == 'critical':
             self.__logger.critical(message)
+    
+    def get_rawstorage_path(self, location):
+        if location == 'cmcb': return self.__cmcbstorage
+        else: return self.__zihstorage
 
     def set_name(self, name):
         self.__name = name

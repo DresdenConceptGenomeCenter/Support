@@ -108,6 +108,19 @@ class Database(object):
         cursor.close()
  
     '''
+    function queries the database table clients with the flowcell id and returns a dictionary
+    @param clientid: integer
+    @return: dictionary
+    '''
+    def query_clients_with_clientid(self, clientid):
+        cursor = self.__conn.cursor(dictionary = True)
+        query = 'SELECT * FROM Clients WHERE ID=%s'.format(clientid)
+        cursor.execute(query, (clientid, ))
+        resultset = cursor.fetchone()
+        cursor.close()
+        return resultset
+  
+    '''
     function queries the database table flowcells with the fcstatus and pipelinestatus.
     it returns a list of dictionaries
     @param fcstatus: integer
@@ -123,14 +136,27 @@ class Database(object):
         return resultset
 
     '''
-    function queries the machine table with machine id and returns a single dictionary
-    @param machineid: integer
-    @return: list of dictionaries
+    function queries the database table indexes with the index id and returns a dictionary
+    @param indexid: integer
+    @return: dictionary
     '''
-    def query_machines_with_machineid(self, machineid):
+    def query_indexes_with_indexid(self, indexid):
         cursor = self.__conn.cursor(dictionary = True)
-        query = ('SELECT * FROM Machines WHERE ID=%s')
-        cursor.execute(query, (machineid, ))
+        query = ('SELECT * FROM Indexes WHERE ID=%s')
+        cursor.execute(query, (indexid, ))
+        resultset = cursor.fetchone()
+        cursor.close()
+        return resultset
+
+    '''
+    function queries the database table libraries with the library id and returns a dictionary
+    @param libid: integer
+    @return: dictionary
+    '''
+    def query_libraries_with_libid(self, libid):
+        cursor = self.__conn.cursor(dictionary = True)
+        query = ('SELECT * FROM Libraries WHERE ID=%s')
+        cursor.execute(query, (libid, ))
         resultset = cursor.fetchone()
         cursor.close()
         return resultset
@@ -147,7 +173,44 @@ class Database(object):
         cursor.close()
         return resultset
 
+    '''
+    function queries the machine table with machine id and returns a dictionary
+    @param machineid: integer
+    @return: dictionary
+    '''
+    def query_machines_with_machineid(self, machineid):
+        cursor = self.__conn.cursor(dictionary = True)
+        query = ('SELECT * FROM Machines WHERE ID=%s')
+        cursor.execute(query, (machineid, ))
+        resultset = cursor.fetchone()
+        cursor.close()
+        return resultset
 
+    '''
+    function queries the samples table with sample id and returns a dictionary
+    @param sampleid: integer
+    @return: dictionary
+    '''
+    def query_samples_with_sampleid(self, sampleid):
+        cursor = self.__conn.cursor(dictionary = True)
+        query = ('SELECT * FROM Samples WHERE ID=%s')
+        cursor.execute(query, (sampleid, ))
+        resultset = cursor.fetchone()
+        cursor.close()
+        return resultset
+
+    '''
+    function queries the tracks table with the flowcell id and returns a list of dictionaries of tracks
+    @param fcid: integer
+    @return: list of dictionaries 
+    '''
+    def query_tracks_with_flowcellid(self, fcid):
+        cursor = self.__conn.cursor(dictionary = True)
+        query = ('SELECT * FROM Tracks WHERE FLOWCELL_ID=%s')
+        cursor.execute(query, (fcid, ))
+        resultset = cursor.fetchall()
+        cursor.close()
+        return resultset
 
 
 # @TODO flowcell insert (code, 

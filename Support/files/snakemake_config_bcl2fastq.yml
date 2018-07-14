@@ -1,0 +1,5 @@
+pipelining: PIPESTORE
+fq_storage: FQSTORAGE
+bcl2fastqversion: BCLVERSION
+
+fc:
