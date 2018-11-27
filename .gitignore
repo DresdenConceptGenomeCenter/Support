@@ -4,6 +4,7 @@ information.py
 information.pyc
 support_information.py
 support_information.pyc
-
+.pydevproject
+.project
 *~
 .Rhistory
