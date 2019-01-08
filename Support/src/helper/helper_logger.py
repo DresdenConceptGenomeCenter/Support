@@ -76,6 +76,19 @@ class MainLogger(object):
         self.logger.addHandler(ch)
         self.__ch = ch
         self.__streamh = True
+    
+    @staticmethod
+    def show_log(logger, level, message):
+        if level == 'debug':
+            logger.debug(message)
+        elif level == 'info':
+            logger.info(message)
+        elif level == 'warning':
+            logger.warning(message)
+        elif level == 'error':
+            logger.error(message)
+        elif level == 'critical':
+            logger.critical(message)
 
     def get_logger(self):
         return self.logger
