@@ -32,6 +32,8 @@ contact: mathias.lesche(at)tu-dresden.de
 
 from gzip import open as gzipopen
 
+from io import TextIOWrapper
+
 from pathlib import Path
 
 from os import environ
@@ -43,6 +45,8 @@ from os.path import isdir
 from os.path import sep
 from os.path import join as pathjoin
 from os.path import exists
+
+from time import strftime
 
 '''
     Method produces the reverse complement of a nucleotide sequence
@@ -111,6 +115,21 @@ def create_directory(dirname):
     Path(get_absolute_path(dirname)).mkdir(mode = 0o770, parents = True, exist_ok = True)
 
 '''
+  Given a list of possible directory, method checks if directories exist
+  @param dirlist: a list of possible directories
+  @return: list (correct), list(incorrect)
+'''
+def check_directorylist(dirlist):
+    correct, incorrect = [], []
+    for name in dirlist:
+        name = get_absolute_path(name)
+        if check_directory(name) == '':
+            incorrect.append(name)
+        else:
+            correct.append(name)
+    return correct, incorrect
+
+'''
   Give a list of possible files, method checks if files exist
   @param filelist: possible list of files
   @return list (correct), list (incorrect) 
@@ -143,8 +162,7 @@ def add_files_to_list(directory, ext):
         for suffix in ext:
             if name.endswith(suffix):
                 filename = pathjoin(directory, name)
-            if check_file(filename) != '':
-                returnfiles.append(filename)
+                if check_file(filename) != '': returnfiles.append(filename)
                 break
     return returnfiles
 
@@ -158,7 +176,7 @@ def add_files_to_list(directory, ext):
 '''
 def add_files_to_list_recursive(directory, returnfiles, ext):
     returnfiles.extend(add_files_to_list(directory, ext))
-    tempdirectories = ['{0}{1}'.format(directory, i) for i in listdir(add_separator(directory)) if isdir('{0}{1}'.format(directory, i))]
+    tempdirectories = [pathjoin(directory, i) for i in listdir(directory) if isdir(pathjoin(directory, i))]
     for dirname in tempdirectories:
         returnfiles = add_files_to_list_recursive(add_separator(dirname), returnfiles, ext)
     return returnfiles
@@ -176,7 +194,7 @@ def add_files_to_list_recursive(directory, returnfiles, ext):
 def add_files_to_list_recursive_depth(directory, returnfiles, ext, count, depth = 2):
     returnfiles.extend(add_files_to_list(directory, ext))
     if count == depth: return returnfiles
-    tempdirectories = ['{0}{1}'.format(directory, i) for i in listdir(add_separator(directory)) if isdir('{0}{1}'.format(directory, i))]
+    tempdirectories = [pathjoin(directory, i) for i in listdir(directory) if isdir(pathjoin(directory, i))]
     for dirname in tempdirectories:
         returnfiles = add_files_to_list_recursive_depth(add_separator(dirname), returnfiles, ext, count + 1, depth)
     return returnfiles
@@ -215,14 +233,14 @@ STANDARD READ WRITE FUNCTIONS
 '''
 def get_fileobject(filename, attr):
     if filename.endswith('gz'):
-        return gzipopen(filename, '{0}b'.format(attr))
+        return TextIOWrapper(gzipopen(filename, '{0}b'.format(attr)))
     return open(filename, attr)
  
 def write_list(writelist, filename, attr = 'w'):
     with get_fileobject(filename, attr) as fileout:
         fileout.writelines(writelist)
  
-def write_string(writestring, filename, attr):
+def write_string(writestring, filename, attr = 'w'):
     with get_fileobject(filename, attr) as fileout:
         fileout.write(writestring)
  
@@ -266,4 +284,11 @@ def list_subdirectories(dirname):
 def is_archived_directory(dirname):
     dirname = get_absolute_path(dirname)
     return '_archived' in dirname or exists(pathjoin(dirname,"toarchive.txt")) or exists(pathjoin(dirname,"topbarchive.txt")) or exists(pathjoin(dirname,"ARCHIVED.txt"))
+
+def getLogfile(ext = None):
+    logtime = strftime('%y%m%d_%H-%M-%S')
+    if ext is None:
+        return '{0}.log'.format(logtime)
+    else:
+        return '{0}_{1}.log'.format(logtime, ext)
 

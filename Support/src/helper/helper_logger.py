@@ -33,48 +33,48 @@ import logging
 
 
 class MainLogger(object):
-    def __init__(self, logtitle, streamh = True, fileh = False, logfilename = ''):
+    def __init__(self, logtitle, streamh = True, fileh = False, logfilename = '', clogstr = 'DEBUG', flogstr = 'DEBUG'):
         self.__logfilename = logfilename
-        self.__ch = ''
+        self.__ch = []
         self.__streamh = streamh
-        self.__fh = ''
+        self.__fh = []
         self.__fileh = fileh
-        self.set_logger(logtitle, streamh, fileh)
+        self.set_logger(logtitle, streamh, fileh, clogstr, flogstr)
 
-    def set_logger(self, logtitle, streamh, fileh):
+    def set_logger(self, logtitle, streamh, fileh, chlogstring, fhlogstring):
         self.logger = logging.getLogger(logtitle)
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel('DEBUG')
         self.formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt= '%m/%d/%Y %I:%M:%S %p')
 
         if fileh:
             fh = logging.FileHandler(self.__logfilename)
-            fh.setLevel(logging.DEBUG)
+            fh.setLevel(fhlogstring)
             fh.setFormatter(self.formatter)
             self.logger.addHandler(fh)
-            self.__fh = fh
+            self.__fh.append(fh)
 
         if streamh:
             ch = logging.StreamHandler()
-            ch.setLevel(logging.INFO)
+            ch.setLevel(chlogstring)
             ch.setFormatter(self.formatter)
             self.logger.addHandler(ch)
-            self.__ch = ch
+            self.__ch.append(ch)
 
-    def add_filelogger(self, filename):
+    def add_filelogger(self, filename, fhlogstring):
         self.__logfilename = filename
         fh = logging.FileHandler(self.__logfilename)
-        fh.setLevel(logging.DEBUG)
+        fh.setLevel(fhlogstring)
         fh.setFormatter(self.formatter)
         self.logger.addHandler(fh)
-        self.__fh = fh
-        self.__fileh = True  
+        self.__fh.append(fh)
+        self.__fileh = True
         
-    def add_streamlogger(self):
+    def add_streamlogger(self, clogstr):
         ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
+        ch.setLevel(clogstr)
         ch.setFormatter(self.formatter)
         self.logger.addHandler(ch)
-        self.__ch = ch
+        self.__ch.append(ch)
         self.__streamh = True
     
     @staticmethod
@@ -94,8 +94,10 @@ class MainLogger(object):
         return self.logger
     
     def close(self):
-        if self.__fileh: self.logger.removeHandler(self.__fh)
-        if self.__streamh: self.logger.removeHandler(self.__ch)
+        for i in self.__fh:
+            self.logger.removeHandler(i)
+        for i in self.__ch:
+            self.logger.removeHandler(i)
 
     def get_fileh(self):
         return self.__fileh
