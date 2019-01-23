@@ -37,6 +37,7 @@ from datetime import datetime
 from unicodedata import normalize
 
 from helper.io_module import check_file
+from helper.io_module import get_absolute_path
 
 from pbcore.io import SubreadSet
 
@@ -172,7 +173,7 @@ class SmrtCell(object):
     def get_raw_data_path(self,collection_index=0):
         if self.__is_valid:
             assert self.check_collection_index(collection_index),'Specified collection index is invalid!'
-            return self.__subreadset.metadata.collections[collection_index].primary.outputOptions.collectionPathUri
+            return get_absolute_path(self.__subreadset.metadata.collections[collection_index].primary.outputOptions.collectionPathUri)
         else:
             return None
     

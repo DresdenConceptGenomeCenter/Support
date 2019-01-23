@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 '''
 The MIT License (MIT)
 
@@ -53,6 +53,7 @@ from helper.database import Database
 from helper.io_module import check_directory
 from helper.io_module import list_subdirectories
 from helper.io_module import is_archived_directory
+from helper.io_module import get_absolute_path
 
 from helper.support_information import SupportInformation as SI
 
@@ -223,9 +224,10 @@ class SmrtCellImporter(object):
         # skip if it is not valid
         if not self.__is_valid:
             return None
-        
+                
         # insert flowcell into database       
         smrtcell = self.get_smrtcell()
+        
         
         # additional information is stored in a dict and then converted into json
         additional_information = {}
@@ -446,7 +448,7 @@ if __name__ == '__main__':
     # parse command line arguments
     parser = Parser()
     parser.main()    
-    
+        
     # iterate through raw data directories provided by parser
     for d in parser.get_raw_data_dirs():
         # is already in database?
@@ -460,11 +462,6 @@ if __name__ == '__main__':
         # insert flowcell and tracks
         flowcell_id = smrtcell_importer.insert_flowcell_in_db(dbinst)
         track_ids = smrtcell_importer.insert_tracks_in_db(dbinst,flowcell_id)
-        
-        # now add job what to do next
-        # -MD5SUM
-        # -tar and gz
-        # -encryp?
                 
         # commit here so that if something fails the complete flowcell is removed
         dbinst.commitConnection()
